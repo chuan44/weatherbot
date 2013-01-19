@@ -15,6 +15,18 @@ def getWeather(city):
     weather = weather['query']['results']['weather']['rss']['channel']
     return weather
 
+def getAqiforecast():
+    '''查询北京翌日首要污染物'''
+    highaqi = 0
+    query = 'http://zx.bjmemc.com.cn/ashx/DayForecast.ashx'
+    aqi = json.loads(urllib2.urlopen(query).read())[0]
+    # 提取翌日首要污染物的高值
+    if aqi['AQID'].find('-') != -1:
+        highaqi = aqi['AQID'][aqi['AQID'].rfind('-')+1:]
+    # (AQI高值，AQI类型：数值)
+    aqi = (int(highaqi), aqi['PriPollutantD']+u': '+aqi['AQID'])
+    return aqi
+
 def forecastInfo(weather):
     forecast_info = {}
     #提取城市和时间
@@ -23,7 +35,7 @@ def forecastInfo(weather):
     forecast_info['forecast'] = (weather['item']['forecast'][0],weather['item']['forecast'][1])
     return forecast_info
 
-def tempCompare(forecast_info):
+def tempCompare(forecast_info,aqi):
     is_weather_changed = 0
     tody_all = forecast_info['forecast'][0]
     tomorrow_all = forecast_info['forecast'][1]
@@ -39,33 +51,38 @@ def tempCompare(forecast_info):
         if i in tomorrow_all['text'].lower():
             is_bad_weather = 1
 
-    if lowcondition_change > 2 or lowcondition_change < -2:
+    if lowcondition_change > 3 or lowcondition_change < -3:
         is_weather_changed = 1
-    elif highcondition_change > 2 or highcondition_change < -2:
+    elif highcondition_change > 3 or highcondition_change < -3:
         is_weather_changed = 1
     elif is_bad_weather:
         is_weather_changed = 1
+    elif aqi[0] > 200:
+        is_weather_changed = 1
     else:
         pass
-    return (is_weather_changed, lowcondition_change, highcondition_change)
+    return (is_weather_changed, lowcondition_change, highcondition_change, aqi)
 
 if __name__ == '__main__':
     city = 'Beijing'
     query_weather = getWeather(city)
     forecast_info = forecastInfo(query_weather)
-    is_weather_changed, lowcondition_change, highcondition_change = tempCompare(forecast_info)
+    aqi = getAqiforecast()
+    is_weather_changed, lowcondition_change, highcondition_change, aqi = tempCompare(forecast_info, aqi)
     if is_weather_changed:
         audience = u'@人形鼠昂天使心 @Ginni @沈楚桉'
-        content = "Tomorrow(%s): %s, high around %sC (%+dC), low around %sC (%+dC). %s. %s" % (
+        content = "Tomorrow(%s): %s, high around %sC (%+dC), low around %sC (%+dC). %s. %s. %s" % (
             forecast_info['forecast'][1]['date'],
             forecast_info['forecast'][1]['text'],
             forecast_info['forecast'][1]['high'],
             highcondition_change,
             forecast_info['forecast'][1]['low'],
             lowcondition_change,
+            aqi[1],
             forecast_info['date_and_city'],
             audience,
             )
+        print content
         oauth.apply_access_token()
         oauth.client.post.statuses__update(status=content)
 
