@@ -18,7 +18,7 @@ def getWeather(city):
 def getAqiforecast():
     '''查询北京翌日首要污染物'''
     highaqi = 0
-    query = 'http://zx.bjmemc.com.cn/ashx/DayForecast.ashx'
+    query = 'http://zx.bjmemc.com.cn/ashx/DayForecast.ashx1'
     aqi = json.loads(urllib2.urlopen(query).read())[0]
     # 提取翌日首要污染物的高值
     if aqi['AQID'].find('-') != -1:
@@ -67,7 +67,10 @@ if __name__ == '__main__':
     city = 'Beijing'
     query_weather = getWeather(city)
     forecast_info = forecastInfo(query_weather)
-    aqi = getAqiforecast()
+    try:
+        aqi = getAqiforecast()
+    except:
+        aqi = (200, 'AQI: N/A')
     is_weather_changed, lowcondition_change, highcondition_change, aqi = tempCompare(forecast_info, aqi)
     if is_weather_changed:
         audience = u'@人形鼠昂天使心 @Ginni @沈楚桉'
@@ -82,7 +85,7 @@ if __name__ == '__main__':
             forecast_info['date_and_city'],
             audience,
             )
-        print content
+        # print content
         oauth.apply_access_token()
         oauth.client.post.statuses__update(status=content)
 
