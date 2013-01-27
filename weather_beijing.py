@@ -18,7 +18,7 @@ def getWeather(city):
 def getAqiforecast():
     '''查询北京翌日首要污染物'''
     highaqi = 0
-    query = 'http://zx.bjmemc.com.cn/ashx/DayForecast.ashx1'
+    query = 'http://zx.bjmemc.com.cn/ashx/DayForecast.ashx'
     aqi = json.loads(urllib2.urlopen(query).read())[0]
     # 提取翌日首要污染物的高值
     if aqi['AQID'].find('-') != -1:
