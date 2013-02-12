@@ -73,7 +73,7 @@ if __name__ == '__main__':
         aqi = (200, 'AQI: N/A')
     is_weather_changed, lowcondition_change, highcondition_change, aqi = tempCompare(forecast_info, aqi)
     if is_weather_changed:
-        audience = u'@人形鼠昂天使心 @Ginni @沈楚桉'
+        audience = u'@Ginni @沈楚桉'
         content = "Tomorrow(%s): %s, high around %sC (%+dC), low around %sC (%+dC). %s. %s. %s" % (
             forecast_info['forecast'][1]['date'],
             forecast_info['forecast'][1]['text'],
